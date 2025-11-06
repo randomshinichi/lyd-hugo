@@ -1,0 +1,40 @@
+baseURL = 'https://example.org/'
+defaultContentLanguage = "en"
+title = 'tao visits Chiang Mai'
+theme = "hugo-scroll"
+
+
+# Theme-specific variables `.Site.Params.myParamName`
+[params]
+# Another "title" :-). This one is used as the site_name on the Hugo's internal
+# opengraph structured data template.
+# See https://ogp.me/ and https://gohugo.io/templates/internal#open-graph.
+title = "Jane Doe - Nutrition Coach & Chef Consultant"
+
+# The "description" of your website. This is used in the meta data of your generated html.
+description = "Nutrition Coach & Chef Consultant"
+# Show a menu of languages available
+language_menu = true
+
+# Show also a language menu item for the current language, if false only
+# show the remaining languages
+show_current_lang = true
+
+[params.footer]
+# Show contact icons for email/phone (if specified) in the footer of the page
+showContactIcons = false
+
+# Show links indicated with footer_menu and footer_menu_title in the footer of the page
+showFooterLinks = false
+# Define additional languages
+[languages]
+[languages.en]
+weight = 10
+languageName = "English"
+contentDir = "content/en"
+
+[languages.zh-tw]
+title = "Erika Musterfrau - Ernährungshilfe & Kochberatung"
+weight = 20
+contentDir = "content/zh-tw"
+languageName = "繁体中文"
