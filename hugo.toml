@@ -1,4 +1,4 @@
-baseURL = 'https://randomshinichi.github.io/lyd-chiangmai'
+baseURL = 'https://lyd-chiangmai.netlify.app'
 defaultContentLanguage = "zh-tw"
 title = 'dao visits Chiang Mai'
 theme = "hugo-scroll"
