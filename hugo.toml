@@ -1,6 +1,6 @@
-baseURL = 'https://example.org/'
-defaultContentLanguage = "en"
-title = 'tao visits Chiang Mai'
+baseURL = 'https://randomshinichi.github.io/lyd-chiangmai'
+defaultContentLanguage = "zh-tw"
+title = 'dao visits Chiang Mai'
 theme = "hugo-scroll"
 
 
@@ -9,10 +9,10 @@ theme = "hugo-scroll"
 # Another "title" :-). This one is used as the site_name on the Hugo's internal
 # opengraph structured data template.
 # See https://ogp.me/ and https://gohugo.io/templates/internal#open-graph.
-title = "Jane Doe - Nutrition Coach & Chef Consultant"
+title = "dao visits Chiang Mai"
 
 # The "description" of your website. This is used in the meta data of your generated html.
-description = "Nutrition Coach & Chef Consultant"
+description = "a healing, rejuvenating journey"
 # Show a menu of languages available
 language_menu = true
 
@@ -20,21 +20,66 @@ language_menu = true
 # show the remaining languages
 show_current_lang = true
 
+# A "copyright"-line to be added at the bottom of the page.
+# Hint: Plain HTML is supported in here as well. So you may e.g. add a link to your legal imprint-page.
+copyright = "<a href=\"https://www.flaticon.com/free-icon/chakras_4646132\">Freepik on flaticon</a> icons"
+
+# This theme will, by default, inject a design-by-line at the bottom of the page.
+# You can turn it off, but we would really appreciate if you don’t :-)
+hidedesignbyline = false
+
+# The sections of the home page alternate styling. Mark invert as true to swap the styling of the sections
+invertSectionColors = false
+
+# Options used for automatic image generation. see: https://gohugo.io/content-management/image-processing/
+image_options = "webp q90 lanczos photo"
+
+[[params.contacts]]
+label = "Phone"
+value = "0930-000-948"
+url = "tel:0930000948"
+icon = "fa fa-phone"
+
+[[params.contacts]]
+label = "Email"
+value = "camila.ye@gmail.com"
+url = "mailto:camila.ye@gmail.com"
+icon = "fa fa-envelope"
+
+[[params.contacts]]
+label = "Space"
+value = "台北市中山區林森北路67巷7號"
+url = "https://maps.google.com/?q=台北市中山區林森北路67巷7號"
+icon = "fa fa-map-marker"
+
+[[params.contacts]]
+label = "YouTube"
+value = "youtube.com/@CamilaYe"
+url = "https://www.youtube.com/@CamilaYe"
+icon = "fa-brands fa-youtube"
+
+[[params.contacts]]
+label = "Linktree"
+value = "linktr.ee/CamilaYe"
+url = "https://linktr.ee/CamilaYe"
+icon = "fa fa-link"
+
 [params.footer]
 # Show contact icons for email/phone (if specified) in the footer of the page
 showContactIcons = false
 
 # Show links indicated with footer_menu and footer_menu_title in the footer of the page
-showFooterLinks = false
+showFooterLinks = true
 # Define additional languages
 [languages]
-[languages.en]
-weight = 10
-languageName = "English"
-contentDir = "content/en"
+# [languages.en]
+# title = "dao visits Chiang Mai"
+# weight = 10
+# languageName = "English"
+# contentDir = "content/en"
 
 [languages.zh-tw]
-title = "Erika Musterfrau - Ernährungshilfe & Kochberatung"
+title = "流雲道 - 七日身心靈療癒之旅"
 weight = 20
-contentDir = "content/zh-tw"
 languageName = "繁体中文"
+contentDir = "content/zh-tw"

@@ -1,0 +1,547 @@
+# Hugo Documentation Site
+
+## Introduction
+
+The Hugo Documentation Site is the official documentation website for Hugo, the world's fastest static site generator built in Go. This project serves as both comprehensive technical documentation and a living example of Hugo's capabilities, built entirely with Hugo itself. The site provides detailed reference documentation for Hugo's template functions, methods, configuration options, CLI commands, and best practices for building static websites.
+
+The documentation site leverages modern web technologies including Alpine.js for interactive components, Tailwind CSS for styling, and Turbo.js for fast page navigation. It features real-time search powered by Algolia, dark mode support with system preference detection, syntax highlighting for over 150 languages, and an extensive shortcode system for rich content authoring. The project is deployed on Netlify and serves as the primary learning resource for developers using Hugo at https://gohugo.io/.
+
+## APIs and Key Functions
+
+### Algolia Search API Integration
+
+Real-time documentation search powered by Algolia's hosted search service with client-side LRU caching and keyboard shortcuts.
+
+```javascript
+// assets/js/alpinejs/data/search.js
+export default () => ({
+  query: '',
+  results: [],
+  isOpen: false,
+  cache: new LRUCache(10),
+
+  async search() {
+    if (this.query.length < 2) {
+      this.results = [];
+      return;
+    }
+
+    const cached = this.cache.get(this.query);
+    if (cached) {
+      this.results = cached;
+      return;
+    }
+
+    const response = await fetch(
+      `https://D1BPLZHGYQ-dsn.algolia.net/1/indexes/hugodocs/query`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Algolia-API-Key': '6df94e1e5d55d258c56f60d974d10314',
+          'X-Algolia-Application-Id': 'D1BPLZHGYQ',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: this.query,
+          hitsPerPage: 10
+        })
+      }
+    );
+
+    const data = await response.json();
+    this.results = data.hits;
+    this.cache.set(this.query, this.results);
+  },
+
+  // Open search with keyboard shortcut
+  init() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+        e.preventDefault();
+        this.isOpen = true;
+      }
+    });
+  }
+});
+```
+
+### Code Toggle Shortcode
+
+Multi-format configuration display allowing users to view examples in YAML, TOML, or JSON with preference persistence.
+
+```html
+<!-- layouts/shortcodes/code-toggle.html -->
+<!-- Usage in content: -->
+{{< code-toggle file="hugo.toml" >}}
+baseURL = "https://example.com/"
+title = "My Hugo Site"
+languageCode = "en-us"
+{{< /code-toggle >}}
+
+<!-- Generates interactive tabs with copy button -->
+<!-- User preference saved to localStorage -->
+<!-- Automatic syntax highlighting per format -->
+```
+
+### Image Processing Shortcode
+
+Advanced image manipulation with 18 filters including grayscale, blur, brightness, contrast, colorize, gamma, saturation, and text overlay.
+
+```html
+<!-- layouts/shortcodes/img.html -->
+<!-- Basic usage with filter -->
+{{< img
+  src="images/sunset.jpg"
+  alt="Beautiful sunset"
+  filter="grayscale"
+  filterArgs=""
+  example=true
+>}}
+
+<!-- Multiple filters with before/after -->
+{{< img
+  src="images/photo.jpg"
+  alt="Processed image"
+  filter="brightness"
+  filterArgs="30"
+  example=true
+>}}
+
+<!-- Text overlay -->
+{{< img
+  src="images/banner.jpg"
+  alt="Banner with text"
+  filter="text"
+  filterArgs="Hello Hugo, 50, 50, size:64, color:#ffffff, font:Arial"
+>}}
+
+<!-- Available filters: -->
+<!-- grayscale, invert, blur, brightness, colorize, contrast -->
+<!-- gamma, gaussianblur, hue, pixelate, saturation, sepia -->
+<!-- sigmoid, unsharpmask, dither, overlay, padding, process, text -->
+```
+
+### Custom Link Render Hook
+
+Automatic internal link resolution with fragment validation and glossary term linking.
+
+```html
+<!-- layouts/_markup/render-link.html -->
+<!-- In markdown: -->
+[See the config options](/configuration/all-config/)
+[Glossary term](g:front-matter)
+[Jump to section](#usage-examples)
+
+<!-- Automatic resolution: -->
+<!-- - Resolves page references by path -->
+<!-- - Validates heading fragment IDs -->
+<!-- - Supports glossary with "g:" prefix -->
+<!-- - Singularizes plural terms automatically -->
+<!-- - Reports broken links with configurable severity -->
+
+<!-- Error handling configuration in hugo.toml: -->
+[params.render_hooks.link]
+  errorLevel = 'warning'  # ignore, warning, or error
+```
+
+### Table of Contents with Scroll Spy
+
+Automatic table of contents with Intersection Observer-based active section tracking.
+
+```javascript
+// assets/js/alpinejs/data/toc.js
+export default () => ({
+  activeId: '',
+  userClicked: false,
+
+  init() {
+    const headings = document.querySelectorAll('h2[id], h3[id], h4[id]');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !this.userClicked) {
+          this.activeId = entry.target.id;
+          this.scrollToActive();
+        }
+      });
+    }, {
+      rootMargin: '-100px 0px -66%',
+      threshold: 0
+    });
+
+    headings.forEach(heading => observer.observe(heading));
+  },
+
+  scrollToActive() {
+    const activeLink = document.querySelector(`a[href="#${this.activeId}"]`);
+    if (activeLink) {
+      activeLink.scrollIntoViewIfNeeded?.() ||
+        activeLink.scrollIntoView({ block: 'nearest' });
+    }
+  },
+
+  handleClick(id) {
+    this.userClicked = true;
+    this.activeId = id;
+    setTimeout(() => this.userClicked = false, 1000);
+  }
+});
+```
+
+### Dark Mode Store
+
+Global color scheme management with system preference detection and localStorage persistence.
+
+```javascript
+// assets/js/alpinejs/stores/nav.js
+export default {
+  colorScheme: Alpine.$persist('system').as('colorScheme'),
+
+  init() {
+    this.applyColorScheme();
+
+    // Watch for system preference changes
+    window.matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', () => {
+        if (this.colorScheme === 'system') {
+          this.applyColorScheme();
+        }
+      });
+  },
+
+  applyColorScheme() {
+    const isDark = this.colorScheme === 'dark' ||
+      (this.colorScheme === 'system' &&
+       window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    document.documentElement.classList.toggle('dark', isDark);
+  },
+
+  setColorScheme(scheme) {
+    this.colorScheme = scheme;  // 'light', 'dark', or 'system'
+    this.applyColorScheme();
+  }
+};
+
+// Usage in HTML with Alpine.js:
+// <button @click="$store.nav.setColorScheme('dark')">Dark Mode</button>
+```
+
+### New In Version Shortcode
+
+Displays version badges for new features with automatic hiding based on Hugo version and age threshold.
+
+```html
+<!-- layouts/shortcodes/new-in.html -->
+<!-- Usage in content: -->
+{{< new-in 0.112.0 >}}
+
+<!-- Generates: -->
+<!-- New in v0.112.0 badge linking to GitHub release -->
+<!-- Auto-hides if feature is in Hugo version < current + 5 releases -->
+<!-- Visual indicator for recently added functionality -->
+
+<!-- Example output: -->
+<div class="alert alert-info">
+  <strong>New in <a href="https://github.com/gohugoio/hugo/releases/tag/v0.112.0">v0.112.0</a></strong>
+</div>
+```
+
+### Deprecated In Version Shortcode
+
+Warning callout for deprecated features with version information.
+
+```html
+<!-- layouts/shortcodes/deprecated-in.html -->
+<!-- Usage: -->
+{{< deprecated-in 0.100.0 >}}
+This feature is deprecated. Use the new method instead.
+{{< /deprecated-in >}}
+
+<!-- Generates orange warning alert box -->
+<!-- Links to release notes on GitHub -->
+<!-- Styled consistently with site alert system -->
+```
+
+### Data Table Shortcode
+
+Dynamic table generation from site data with configurable columns and data paths.
+
+```html
+<!-- layouts/shortcodes/datatable.html -->
+<!-- Usage: -->
+{{< datatable "chroma_lexers" "name,aliases" >}}
+
+<!-- Renders table from site.Data.docs.chroma_lexers -->
+<!-- Columns: name, aliases -->
+<!-- Supports nested data access with dot notation -->
+<!-- Example: -->
+{{< datatable "configuration.root" "key,type,default,description" >}}
+
+<!-- Output: -->
+<!-- | Key | Type | Default | Description | -->
+<!-- Auto-formatted markdown table with data -->
+```
+
+### Function Signatures Display
+
+Structured display of Hugo template function and method signatures with syntax highlighting.
+
+```html
+<!-- layouts/_partials/docs/functions-signatures.html -->
+<!-- Front matter in function documentation: -->
+---
+title: strings.Contains
+params:
+  functions_and_methods:
+    returnType: bool
+    signatures:
+      - 'strings.Contains STRING SUBSTRING'
+      - 'strings.Contains COLLECTION ITEM'
+---
+
+<!-- Template usage: -->
+{{ partial "docs/functions-signatures.html" . }}
+
+<!-- Generates syntax-highlighted signature block: -->
+<div class="signature">
+  <code>strings.Contains STRING SUBSTRING → bool</code>
+  <code>strings.Contains COLLECTION ITEM → bool</code>
+</div>
+```
+
+### Glossary System
+
+Fragment-based term linking with automatic alphabetical indexing and singular/plural handling.
+
+```html
+<!-- layouts/shortcodes/glossary.html -->
+<!-- Define terms: -->
+{{< glossary-term "front-matter" >}}
+Metadata at the beginning of content files in YAML, TOML, or JSON format.
+{{< /glossary-term >}}
+
+{{< glossary-term "shortcode" >}}
+Reusable content templates that extend Markdown functionality.
+{{< /glossary-term >}}
+
+<!-- Render glossary: -->
+{{< glossary >}}
+
+<!-- Link to terms from anywhere: -->
+[Read about front matter](g:front-matter)
+[Learn about shortcodes](g:shortcode)
+
+<!-- Automatic plural handling: -->
+[Multiple shortcodes](g:shortcodes)  <!-- Links to "shortcode" -->
+```
+
+### In This Section Navigation
+
+Sidebar navigation showing all pages in current section with active page highlighting and scroll position preservation.
+
+```html
+<!-- layouts/_partials/layouts/in-this-section.html -->
+<!-- Automatic generation: -->
+<nav class="in-this-section" data-preserve-scroll-id="sidebar">
+  <h2>{{ .CurrentSection.Title }}</h2>
+  <ul>
+    {{ range .CurrentSection.Pages }}
+      <li class="{{ if eq . $ }}active{{ end }}">
+        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      </li>
+    {{ end }}
+  </ul>
+</nav>
+
+<!-- Scroll position preserved on navigation via Turbo.js -->
+<!-- Sticky positioning with overflow scrolling -->
+```
+
+### List Pages in Section Shortcode
+
+Filtered page listing with exclude/include groups defined in data files.
+
+```html
+<!-- layouts/shortcodes/list-pages-in-section.html -->
+<!-- Usage: -->
+{{< list-pages-in-section path="/functions/fmt" exclude="functions_fmt_logging" >}}
+
+<!-- Filters defined in data/page_filters.yaml: -->
+functions_fmt_logging:
+  - fmt.Errorf
+  - fmt.Print
+  - fmt.Printf
+  - fmt.Println
+
+<!-- Output: -->
+<!-- - [fmt.Sprintf](/functions/fmt/sprintf/) -->
+<!-- - [fmt.Sprint](/functions/fmt/sprint/) -->
+<!-- (logging functions excluded) -->
+```
+
+### Syntax Highlighting Configuration
+
+Chroma-based syntax highlighting with 150+ language lexers and customizable themes.
+
+```toml
+# hugo.toml configuration
+[markup.highlight]
+  lineNumbersInTable = false
+  noClasses = false
+  style = 'solarized-dark'
+  wrapperClass = 'highlight not-prose'
+
+# In markdown with code fences:
+```go {linenos=table,hl_lines=[2,4],linenostart=1}
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello, Hugo!")
+}
+```
+
+# Shortcode alternative:
+{{< highlight go "linenos=table,hl_lines=2 4" >}}
+package main
+import "fmt"
+{{< /highlight >}}
+```
+
+### Breadcrumb Navigation
+
+Hierarchical navigation showing content structure path from root to current page.
+
+```html
+<!-- layouts/_partials/layouts/breadcrumbs.html -->
+<!-- Automatic generation from page hierarchy: -->
+<!-- Home > Documentation > Functions > Collections > index -->
+
+<!-- Implementation: -->
+{{ range .Ancestors.Reverse }}
+  <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+  <span class="separator">></span>
+{{ end }}
+<span class="current">{{ .Title }}</span>
+
+<!-- Styled with Tailwind CSS -->
+<!-- Mobile-responsive with text truncation -->
+```
+
+### Include Shortcode
+
+Embed content from other pages with recursive shortcode processing.
+
+```html
+<!-- layouts/shortcodes/include.html -->
+<!-- Usage: -->
+{{< include "path/to/page.md" >}}
+
+<!-- Implementation: -->
+{{ with site.GetPage (.Get 0) }}
+  {{ .RenderShortcodes }}
+{{ end }}
+
+<!-- Renders page content with all shortcodes processed -->
+<!-- Useful for reusable content fragments -->
+```
+
+### Turbo and Alpine.js Bridge
+
+Seamless integration between Turbo navigation and Alpine.js component lifecycle.
+
+```javascript
+// assets/js/helpers/bridgeTurboAndAlpine.js
+export function bridgeTurboAndAlpine() {
+  // Reinitialize Alpine on Turbo navigation
+  document.addEventListener('turbo:load', () => {
+    Alpine.initTree(document.body);
+  });
+
+  // Cleanup Alpine before cache
+  document.addEventListener('turbo:before-cache', () => {
+    document.querySelectorAll('[x-data]').forEach(el => {
+      Alpine.destroyTree(el);
+    });
+  });
+
+  // Preserve scroll positions in named containers
+  document.addEventListener('turbo:before-render', (event) => {
+    const scrollElements = document.querySelectorAll('[data-preserve-scroll-id]');
+    scrollElements.forEach(el => {
+      const id = el.dataset.preserveScrollId;
+      sessionStorage.setItem(`scroll-${id}`, el.scrollTop);
+    });
+  });
+
+  document.addEventListener('turbo:render', () => {
+    const scrollElements = document.querySelectorAll('[data-preserve-scroll-id]');
+    scrollElements.forEach(el => {
+      const id = el.dataset.preserveScrollId;
+      const scrollTop = sessionStorage.getItem(`scroll-${id}`);
+      if (scrollTop) el.scrollTop = parseInt(scrollTop);
+    });
+  });
+}
+```
+
+### Related Pages
+
+Content recommendation based on keyword similarity with configurable threshold.
+
+```toml
+# hugo.toml configuration
+[related]
+  includeNewer = true
+  threshold = 80
+  toLower = true
+  [[related.indices]]
+    name = 'keywords'
+    weight = 1
+
+# In templates:
+{{ $related := .Site.RegularPages.Related . | first 5 }}
+{{ range $related }}
+  <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+{{ end }}
+
+# Automatically finds pages with similar keywords
+# Threshold 80 = 80% similarity required
+```
+
+### Cascade Configuration
+
+Apply default parameters to content sections and their descendants.
+
+```toml
+# hugo.toml - Apply settings to all pages in /news/
+[[cascade]]
+  [cascade.params]
+    hide_in_this_section = true
+    show_publish_date = true
+  [cascade.target]
+    kind = 'page'
+    path = '{/news/**}'
+
+# Make all regular pages searchable
+[[cascade]]
+  [cascade.params]
+    searchable = true
+  [cascade.target]
+    kind = 'page'
+
+# Exclude section pages from search
+[[cascade]]
+  [cascade.params]
+    searchable = false
+  [cascade.target]
+    kind = '{home,section,taxonomy,term}'
+```
+
+## Summary
+
+The Hugo Documentation Site demonstrates best practices for building modern, performant static websites with Hugo. Primary use cases include serving as comprehensive technical documentation with over 1,000 reference pages for template functions, methods, and configuration options; providing interactive learning resources through code examples and tutorials; offering real-time search across the entire documentation corpus; and showcasing Hugo's capabilities including shortcodes, render hooks, asset pipelines, and template system. The site serves thousands of developers daily who are building static websites with Hugo.
+
+Integration patterns demonstrated include Alpine.js for lightweight client-side interactivity without heavy JavaScript frameworks; Algolia for client-side search without backend infrastructure; Tailwind CSS for utility-first responsive design; Turbo.js for fast navigation with preserved state; Netlify for deployment with custom headers and redirects; and data-driven content using YAML/TOML files. The project exemplifies how static site generators can deliver rich, interactive user experiences while maintaining the performance and security benefits of pre-rendered HTML. Developers can study this codebase to learn Hugo template patterns, shortcode development, render hook customization, asset pipeline configuration, and modern frontend integration techniques applicable to any Hugo project.

@@ -2,16 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://randomshinichi.github.io/lyd-chiangmai/</loc>
+    <loc>http://localhost:1313/lyd-chiangmai/</loc>
   </url><url>
-    <loc>https://randomshinichi.github.io/lyd-chiangmai/categories/</loc>
+    <loc>http://localhost:1313/lyd-chiangmai/categories/</loc>
   </url><url>
-    <loc>https://randomshinichi.github.io/lyd-chiangmai/license/</loc>
+    <loc>http://localhost:1313/lyd-chiangmai/license/</loc>
   </url><url>
-    <loc>https://randomshinichi.github.io/lyd-chiangmai/services/</loc>
+    <loc>http://localhost:1313/lyd-chiangmai/services/</loc>
   </url><url>
-    <loc>https://randomshinichi.github.io/lyd-chiangmai/tags/</loc>
+    <loc>http://localhost:1313/lyd-chiangmai/tags/</loc>
   </url><url>
-    <loc>https://randomshinichi.github.io/lyd-chiangmai/legal/</loc>
+    <loc>http://localhost:1313/lyd-chiangmai/legal/</loc>
   </url>
 </urlset>
