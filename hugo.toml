@@ -36,8 +36,8 @@ image_options = "webp q90 lanczos photo"
 
 [[params.contacts]]
 label = "Phone"
-value = "0930-000-948"
-url = "tel:0930000948"
+value = "+886-0930-000-948"
+url = "tel:+8860930000948"
 icon = "fa fa-phone"
 
 [[params.contacts]]
